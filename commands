@@ -1,0 +1,27 @@
+
+## docker
+service docker start
+docker images
+docker ps
+docker stop 容器ID
+docker rm 容器ID  ##删除容器
+
+### 双塔 之用户端模型 发布 tf-serving
+docker run -it --rm -p 8501:8501 -v "/root/tower_user_model:/models/tower_user_model" -e MODEL_NAME=tower_user_model tensorflow/serving
+docker run -it --rm -p 8502:8501 -v "/root/tower_user_model:/models/tower_user_model" -e MODEL_NAME=tower_user_model tensorflow/serving
+docker run -it --rm -p 8503:8501 -v "/root/tower_user_model:/models/tower_user_model" -e MODEL_NAME=tower_user_model tensorflow/serving
+
+## docker 检查 cpu 内存
+docker stats -a
+
+
+
+##redis-cli
+keys *   ## 查看所有的key
+mget key value  ## 获取值
+del key  ##删除某key
+flushall  ## 清空所有的数据
+
+
+
+
