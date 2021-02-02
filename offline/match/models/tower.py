@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from offline.match.models.data_preprocess import DataPreprocess
+from offline.data_preprocess import DataPreprocess
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
-import tensorflow.keras.backend as K
 import os
 import numpy as np
 
@@ -82,6 +81,9 @@ class TowerModel(object):
     movie_embedding_size = 32
     genre_embedding_size = 32
 
+    dense_size = 128
+
+
     is_concat_tower = False
 
     tower_mode_A = "tower_mode_A"
@@ -125,7 +127,7 @@ class TowerModel(object):
             x = Concatenate()([user_concat, movie_concat])
 
             x = Dense(256, activation="relu")(x)
-            x = Dense(128, activation="relu")(x)
+            x = Dense(self.dense_size, activation="relu")(x)
 
             outputs = Dense(1, activation="relu")(x)
 
@@ -167,9 +169,9 @@ class TowerModel(object):
             [user_embedding, user_recent_click_movie_embedding, user_recent_click_labels_embedding,
              user_like_genres_embedding])
 
-        x = Dense(128, activation="relu")(user_concant)
+        x = Dense(self.dense_size, activation="relu")(user_concant)
 
-        user_outputs = Dense(128, activation="relu")(x)
+        user_outputs = Dense(self.dense_size, activation="relu")(x)
 
         user_inputs = [user_id_in, user_recent_click_movie_in, user_recent_click_labels_in, user_like_genres_in]
 
@@ -189,8 +191,8 @@ class TowerModel(object):
 
         movie_concat = Concatenate()([movie_embedding, movie_genre_embedding, year_embedding])
 
-        x = Dense(128, activation="relu")(movie_concat)
-        movie_outputs = Dense(128, activation="relu")(x)
+        x = Dense(self.dense_size, activation="relu")(movie_concat)
+        movie_outputs = Dense(self.dense_size, activation="relu")(x)
 
         movie_inputs = [movie_in, movie_genre_in, release_year_in]
 
@@ -379,5 +381,5 @@ class TowerModel(object):
 if __name__ == '__main__':
     model = TowerModel(model_name=TowerModel.tower_mode_A)
     # model.predict()
-    # model.train()
-    model.get_movie_vectors()
+    model.train()
+    #model.get_movie_vectors()

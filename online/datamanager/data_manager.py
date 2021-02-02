@@ -6,7 +6,8 @@ from util.redis_client import RedisClient
 import json
 
 pd.set_option("display.max_column", None)
-pd.set_option("display.max_rows",None)
+pd.set_option("display.max_rows", None)
+
 
 class DataManager():
     root_path = "E:/pycharm_project/ZimuRecSys/data/"
@@ -65,7 +66,15 @@ class DataManager():
 
         rating_df["label"] = rating_df["genre"].apply(lambda x: GENRE2LABELMAP.get(x))
 
-        #print(rating_df["label"].value_counts())
+        temp_df = rating_df[rating_df["user_id"] == 1]
+
+        print(len(temp_df))
+        print(temp_df)
+
+        print()
+
+        # print(rating_df["label"].value_counts())
+
         return rating_df
 
     def get_genre_hot_list(self, rating_df):
@@ -125,43 +134,33 @@ class DataManager():
         self.client.hmset(REDIS_USER_TRACE, trace_map)
 
         hmget = self.client.hmget(REDIS_USER_TRACE, 1)
-        print(trace_map.get(1))
 
         print(hmget)
 
-
     """计算哪些电影是冷电影，即没有曝光指定的次数"""
-    def get_cold_movies(self,rating_df):
-        click_df = rating_df.groupby(["movie_id","label"],as_index=False, sort=False)\
-            .agg({"timestamp": "count"})\
+
+    def get_cold_movies(self, rating_df):
+        click_df = rating_df.groupby(["movie_id", "label"], as_index=False, sort=False) \
+            .agg({"timestamp": "count"}) \
             .rename(columns={"timestamp": "click"})
 
         cold_movies_df = click_df[click_df["click"] < 100]
 
         if not cold_movies_df.empty:
-
             def cold_movies_to_redis(x):
                 label = x.head(1)["label"].values[0]
                 x = x[["movie_id", "click"]].set_index("movie_id")
                 mapping = x.to_dict(orient='index')
-                mapping = {k:v.get("click")for k,v in mapping.items()}
+                mapping = {k: v.get("click") for k, v in mapping.items()}
 
-                self.client.hmset(REDIS_COLD_MOVIES,{label:json.dumps(mapping)})
+                self.client.hmset(REDIS_COLD_MOVIES, {label: json.dumps(mapping)})
 
                 return x
 
-            cold_movies_df.groupby("label").apply(lambda x:cold_movies_to_redis(x))
+            cold_movies_df.groupby("label").apply(lambda x: cold_movies_to_redis(x))
 
 
 if __name__ == '__main__':
-
     manager = DataManager()
-    rating_data = manager.load_rating_data()
-    manager.get_cold_movies(rating_data)
-
-
-
-
-
-
-
+    # rating_data = manager.load_rating_data()
+    manager.load_data_to_redis()

@@ -1,31 +1,35 @@
 # -*- coding: utf-8 -*-
-from service.redis_service import get_finish_weight,get_hot_movies_by_labels,get_user_history_rec_movies
+from service.redis_service import get_finish_weight, get_hot_movies_by_labels, get_user_history_rec_movies
+
 """
 实时召回
 """
 
-def get_real_time_match(user_id):
 
-    real_time_rec_movies = set()
-    finish_weight = get_finish_weight(user_id)
+class RealTimeService(object):
 
-    if finish_weight and len(finish_weight) > 0:
+    def __init__(self):
+        print()
 
-        sorted_weight = sorted(finish_weight.items(), lambda x: x[1], reverse=True)
+    def get_real_time_match(self, user_id):
 
-        like_genre_1 = sorted_weight[0][0]
-        like_genre_2 = sorted_weight[1][0]
+        real_time_rec_movies = set()
+        finish_weight = get_finish_weight(user_id)
 
-        hot_movies_dict = get_hot_movies_by_labels([like_genre_1, like_genre_2])
+        if finish_weight and len(finish_weight) > 0:
 
+            sorted_weight = sorted(finish_weight.items(), lambda x: x[1], reverse=True)
 
-        for _,hot_movie in hot_movies_dict.items():
+            like_genre_1 = sorted_weight[0][0]
+            like_genre_2 = sorted_weight[1][0]
 
-            real_time_rec_movies = real_time_rec_movies.union(hot_movie[:100])
+            hot_movies_dict = get_hot_movies_by_labels([like_genre_1, like_genre_2])
 
-        history_exposure_movies = get_user_history_rec_movies(user_id)
+            for _, hot_movie in hot_movies_dict.items():
+                real_time_rec_movies = real_time_rec_movies.union(hot_movie[:100])
 
-        real_time_rec_movies = real_time_rec_movies - set(history_exposure_movies)
+            history_exposure_movies = get_user_history_rec_movies(user_id)
 
-    return real_time_rec_movies
+            real_time_rec_movies = real_time_rec_movies - set(history_exposure_movies)
 
+        return real_time_rec_movies

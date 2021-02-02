@@ -93,6 +93,7 @@ def compute_user_simply_profile():
             user_trace_df.loc[index, "random_int"] = random_int
 
             '''计算 经过 10刷，20刷 50刷 等等 记录'''
+            """这里就是简简单单的 通过点击行为来看用户的兴趣情况，并不是通过 一刷 一刷 很多数据实时的计算的"""
 
             brush_10 = labels[:i][-10:]
             brush_20 = labels[:i][-20:]

@@ -12,7 +12,7 @@ pd.set_option("display.max_column", None)
 
 
 class DataGeneration(object):
-    root_path = "E:/project/ZimuRecSys/app/data/"
+    root_path = "data/"
     movies_path = root_path + "movies.dat"
     ratings_path = root_path + "ratings.dat"
 
@@ -37,7 +37,12 @@ class DataGeneration(object):
         rating_df = pd.read_csv(path, header=None, sep="::")
         rating_df.columns = ["user_id", "movie_id", "score", "timestamp"]
 
+
         rating_df = pd.merge(rating_df, movie_df, on="movie_id")
+
+
+        #print(len(rating_df[rating_df["user_id"] == 1]))
+
 
         return rating_df
 
@@ -104,6 +109,11 @@ class DataGeneration(object):
 
         def compute_user_trace(user_id, user_trace_df):
 
+            if user_id == 1:
+                print(len(user_trace_df))
+
+
+
             user_trace_df = user_trace_df.sort_values("timestamp")
 
             #print(user_trace_df.head())
@@ -148,7 +158,7 @@ class DataGeneration(object):
         def applyParallel(dfGrouped, func):
 
             print(multiprocessing.cpu_count())
-            ret = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(func)(name, group) for name, group in dfGrouped)
+            ret = Parallel(n_jobs=1)(delayed(func)(name, group) for name, group in dfGrouped)
             return pd.concat(ret)
 
         data_df = applyParallel(rating_df.groupby("user_id"), compute_user_trace)

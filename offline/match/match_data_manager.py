@@ -1,9 +1,11 @@
 from util.redis_client import RedisClient
 import pandas as pd
-from offline.match.models.data_preprocess import DataPreprocess
+from offline.data_preprocess import DataPreprocess
 import json
 
-
+"""
+这里数据已经编码过了，不能直接对外展示，需要转码
+"""
 class MatchDataManager(object):
 
     def __init__(self):
@@ -15,6 +17,8 @@ class MatchDataManager(object):
 
     def get_user_recent_history_click_movie_trace(self):
         data_df = pd.read_csv(self.data_preprocess.encoder_data_path)
+
+        data_df = data_df[data_df["target"] == 1]
 
         data_df = data_df[["user_id", "user_recent_click_movie_ids",
                            "user_recent_click_labels","user_like_genres",

@@ -58,43 +58,6 @@ def tower_user_vectors():
         print(e)
     return ""
 
-# def get_user_vector(test_x):
-#     user_input_data = tower_model_cls.get_user_input_data(test_x)
-#     containers = ['http://192.168.18.99:8502', 'http://192.168.18.99:8501', 'http://192.168.18.99:8503']
-#     container = np.random.choice(containers)
-#     SERVER_URL = container + '/v1/models/tower_user_model:predict'
-#
-#     data = {"inputs": {"user_id": user_input_data[0],
-#                        "user_recent_click_movie_ids": user_input_data[1],
-#                        "user_recent_click_labels": user_input_data[2],
-#                        "user_like_genres": user_input_data[3]
-#                        }}
-#
-#     input_data_json = json.dumps(data)
-#
-#     response = requests.post(SERVER_URL, data=input_data_json)
-#     response = json.loads(response.text)
-#     user_output = np.array(response['outputs'])
-#
-#     return user_output
-
-
-@app.route('/model/tower_match', methods=["GET"])
-def tower_match():
-    try:
-
-        for test_x, test_y in test_dataset:
-            user_vector = get_user_vector(test_x)
-
-            input_data = tower_model_cls.search_faiss_vectors(user_vector)
-
-            # pred = tower_model(input_data, training=False)
-            # print(pred)
-            break
-
-    except Exception as e:
-        print(e)
-    return ""
 
 @app.route('/model/tower_predict', methods=["GET"])
 def tower_predict():

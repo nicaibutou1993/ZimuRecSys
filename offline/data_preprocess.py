@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 import os
 import tensorflow as tf
-from offline.match.models.convert_tf_record import dataframe_to_tf_record, tf_record_to_dataset
+from offline.convert_tf_record import dataframe_to_tf_record, tf_record_to_dataset
 from sklearn.utils import shuffle
 
 pd.set_option("display.max_column", None)
@@ -11,7 +11,7 @@ pd.set_option("display.max_column", None)
 
 class DataPreprocess(object):
 
-    root_path = 'E:/pycharm_project/ZimuRecSys/offline/match/models/data/'
+    root_path = 'E:/pycharm_project/ZimuRecSys/offline/data/'
 
     data_path = root_path + "basic_data.csv"
 

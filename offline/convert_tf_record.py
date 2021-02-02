@@ -2,9 +2,9 @@ import pandas as pd
 import tensorflow as tf
 from collections import OrderedDict
 
-input_csv_file = "./data/test.csv"
+input_csv_file = "data/test.csv"
 
-output_tfrecord_file = "./data/all_train.tfrecords"
+output_tfrecord_file = "data/all_train.tfrecords"
 
 
 def create_int_feature(values):
