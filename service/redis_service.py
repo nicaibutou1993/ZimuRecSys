@@ -109,7 +109,8 @@ def get_user_click_genres(user_id):
 
 
 def get_user_match_feature(user_id):
-    """获取召回阶段，用户特征信息"""
+    """获取召回阶段，用户特征信息,这里的 movie_id,user_id,genre
+    等等信息都是已经编码过了 如果对外提供数据需要转码"""
     user_feature = client.hmget(REDIS_MATCH_USER_RECENT_HISTORY_CLICK_MOVIE_TRACE, user_id)[0]
 
     if user_feature is None:
@@ -120,8 +121,33 @@ def get_user_match_feature(user_id):
     return user_feature
 
 
+def get_movie_info(movie_ids):
+
+
+    movies_info_dict = {}
+    movies_info = client.hmget(REDIS_MOVIE_INFO, movie_ids)
+
+    if not isinstance(movie_ids, list):
+        movie_ids = [movie_ids]
+
+    for movie_id, movie_info in zip(movie_ids, movies_info):
+        try:
+            movie_info = json.loads(movie_info)
+
+            label = GENRE2LABELMAP.get(movie_info[1])
+
+            movie_info.append(label)
+
+            movies_info_dict[movie_id] = movie_info
+        except Exception as e:
+            print(e)
+
+    return movies_info_dict
+
+
 if __name__ == '__main__':
     # labels = get_hot_movies_by_labels('1')
     # print(labels)
-    movies = get_user_history_rec_movies(2)
-    print(movies)
+    info = get_movie_info([727])
+
+    print(info)
