@@ -34,7 +34,7 @@ def get_callback(test_dataset, model_path, version="0001"):
 
                 self.f1 = f1
 
-    evaluate = Evaluate(test_dataset, model_path)
+    evaluate = Evaluate(test_dataset, model_path,version)
 
     return evaluate
 

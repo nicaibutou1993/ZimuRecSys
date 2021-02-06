@@ -6,12 +6,13 @@ import tensorflow as tf
 from offline.convert_tf_record import dataframe_to_tf_record, tf_record_to_dataset
 from sklearn.utils import shuffle
 
+from util.config import *
 pd.set_option("display.max_column", None)
 
 
 class DataPreprocess(object):
 
-    root_path = 'E:/pycharm_project/ZimuRecSys/offline/data/'
+    root_path = PROJECT_PATH + 'offline/data/'
 
     data_path = root_path + "basic_data.csv"
 
@@ -255,6 +256,8 @@ class DataPreprocess(object):
         data_df = data_df[["movie_id", "current_label", "release_year"]]
 
         data_df = data_df.drop_duplicates(["movie_id"])
+
+        data_df.to_csv("data/movie_info.csv")
 
         return data_df
 

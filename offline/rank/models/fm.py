@@ -10,12 +10,13 @@ FM 模型
 
 class FM(object):
 
-    def __init__(self, user_num=4691, movie_num=2514, year_num=76, genre_num=9, embedding_size=16):
+    def __init__(self, user_num=4691, movie_num=2514, year_num=76, genre_num=9, embedding_size=16, is_sigmoid=False):
         self.user_num = user_num
         self.movie_num = movie_num
         self.year_num = year_num
         self.genre_num = genre_num
         self.embedding_size = embedding_size
+        self.is_sigmoid = is_sigmoid
 
         self.inputs = self.get_inputs()
 
@@ -131,6 +132,8 @@ class FM(object):
         fm_logit = self.get_fm_logit(sparse_embedding)
 
         outputs = Add()([linear_logit, fm_logit])
+        if self.is_sigmoid:
+            outputs = Dense(1, activation="sigmoid")(outputs)
 
         model = Model(inputs=self.inputs, outputs=outputs)
 
