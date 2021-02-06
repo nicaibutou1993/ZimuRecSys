@@ -5,15 +5,43 @@ docker images
 docker ps
 docker stop 容器ID
 docker rm 容器ID  ##删除容器
+docker exec -it 容器ID /bin/bash ## 进入容器内部
 
-### 双塔 之用户端模型 发布 tf-serving
+
+###
+召回模型
+双塔 之用户端模型 发布 tf-serving
 docker run -it --rm -p 8501:8501 -v "/root/tower_user_model:/models/tower_user_model" -e MODEL_NAME=tower_user_model tensorflow/serving
 docker run -it --rm -p 8502:8501 -v "/root/tower_user_model:/models/tower_user_model" -e MODEL_NAME=tower_user_model tensorflow/serving
 docker run -it --rm -p 8503:8501 -v "/root/tower_user_model:/models/tower_user_model" -e MODEL_NAME=tower_user_model tensorflow/serving
 
+
+###
+排序模型
+双塔 之用户端模型 发布 tf-serving
+docker run -t --rm -p 8504:8501 -v "/root/fm_model:/models/fm_model" -e MODEL_NAME=fm_model tensorflow/serving
+docker run -t --rm -p 8505:8501 -v "/root/deepfm_model:/models/deepfm_model" -e MODEL_NAME=deepfm_model tensorflow/serving
+docker run -t --rm -p 8506:8501 -v "/root/din_model:/models/din_model" -e MODEL_NAME=din_model tensorflow/serving
+
+
+##
+tf-serving 模型更新替换
+1. tf-serving 后台运行模型：
+/root/fm_model：根目录下有一个模型 0001
+docker run -t --rm -p 8504:8501 -v "/root/fm_model:/models/fm_model" -e MODEL_NAME=fm_model tensorflow/serving
+
+2.训练新模型 ：模型存放在/root/fm_model 下的 0002 下
+
+3.将宿主机 模型数据 copy 到 docker 0f81e1e622f4容器目录下
+docker cp /root/0002/ 0f81e1e622f4:/models/fm_model
+此时该容器 fm_model 模型下有 0001 0002，tf-serving 会自动切换到最新的版本中
+
+这里不需要重启docker 模型容器，直接copy模型 即可
+
+
+
 ## docker 检查 cpu 内存
 docker stats -a
-
 
 
 ##redis-cli

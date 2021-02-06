@@ -123,7 +123,6 @@ def get_user_match_feature(user_id):
 
 def get_movie_info(movie_ids):
 
-
     movies_info_dict = {}
     movies_info = client.hmget(REDIS_MOVIE_INFO, movie_ids)
 
