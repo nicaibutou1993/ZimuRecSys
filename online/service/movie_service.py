@@ -13,7 +13,7 @@ DISPLAY_MOVIE_NUM = 15
 """
 
 
-def get_rec_movies(user_id):
+def get_rec_movies(user_id,):
     '''
     获取用户喜欢电影风格的权重及每一个风格推荐数量
     '''
@@ -28,8 +28,6 @@ def get_rec_movies(user_id):
     for label, num in genre_movie_num.items():
 
         hot_movies = get_hot_movies_by_labels(label)
-
-
 
         hot_movies = [i for i in hot_movies if i not in history_movies]
         rec_movies += hot_movies[:num]
