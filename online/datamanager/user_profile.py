@@ -14,8 +14,11 @@ pd.set_option('max_colwidth', 512)
 from online.datamanager.data_manager import DataManager
 from online.service.weight_service import *
 import json
+from online.service.weight_service import WeightService
 
 rating_df = DataManager().load_rating_data()
+
+weight_service = WeightService()
 
 t1 = time.time()
 """简易用户画像"""
@@ -70,7 +73,7 @@ def compute_user_simply_profile():
 
             '''计算每一次点击，各个权重的变换'''
             user_trace_df.loc[index, "init_weights"] = json.dumps(current_weights)
-            rec_genre_num = rec_genre_movie_num(current_weights)
+            rec_genre_num = weight_service.rec_genre_movie_num(current_weights)
             user_trace_df.loc[index, "rec_genre_num"] = json.dumps(rec_genre_num)
 
             random_int = random.randint(0, 1)
@@ -78,15 +81,16 @@ def compute_user_simply_profile():
 
                 for i in range(random_int):
                     label = "0"
-                    current_weights = update_weight(user_id, label, rec_genre_num, current_weights,
-                                                    is_update_redis=False, is_print=False)
-                    rec_genre_num = rec_genre_movie_num(current_weights)
+                    current_weights = weight_service.update_weight(user_id, label, rec_genre_num, current_weights,
+                                                                   is_update_redis=False, is_print=False)
+                    rec_genre_num = weight_service.rec_genre_movie_num(current_weights)
 
             label = item["label"]
 
-            current_weights = update_weight(user_id, label, rec_genre_num, current_weights, is_update_redis=False,
-                                            is_print=False)
-            current_genre_num = rec_genre_movie_num(current_weights)
+            current_weights = weight_service.update_weight(user_id, label, rec_genre_num, current_weights,
+                                                           is_update_redis=False,
+                                                           is_print=False)
+            current_genre_num = weight_service.rec_genre_movie_num(current_weights)
 
             user_trace_df.loc[index, "current_weights"] = json.dumps(current_weights)
             user_trace_df.loc[index, "current_genre_num"] = json.dumps(current_genre_num)
@@ -113,7 +117,7 @@ def compute_user_simply_profile():
             finish_weight = dict(current_c_weights + brush_c_weight)
             total_weight = sum(finish_weight.values())
             finish_weight = {l: round(float(w) / total_weight, 3) for l, w in finish_weight.items()}
-            finish_genre_num = rec_genre_movie_num(finish_weight)
+            finish_genre_num = weight_service.rec_genre_movie_num(finish_weight)
 
             user_trace_df.loc[index, "brush_weight_10"] = json.dumps(brush_weight_10)
             user_trace_df.loc[index, "brush_weight_20"] = json.dumps(brush_weight_20)
@@ -177,6 +181,7 @@ def user_click_movies_to_redis():
 
     rating_df.groupby("user_id").apply(lambda x: save_user_click_to_redis(x))
 
-# compute_user_simply_profile()
+
+compute_user_simply_profile()
 # user_click_movies_to_redis()
 print(time.time() - t1)

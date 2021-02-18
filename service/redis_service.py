@@ -70,7 +70,10 @@ def get_finish_weight(user_id):
     finish_weights = client.hmget(REDIS_FINISH_WEIGHTS, user_id)[0]
 
     if finish_weights is None:
-        finish_weights = {}
+        finish_weights = json.dumps({})
+
+    finish_weights = json.loads(finish_weights)
+
     return finish_weights
 
 

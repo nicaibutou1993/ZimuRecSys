@@ -14,10 +14,10 @@ class DinService(object):
     def __init__(self,rec_num=100):
         self.rec_num = rec_num
 
-    def get_user_din_rec_movies(self, user_id):
+    def get_user_din_rec_movies(self, user_id,static_data_cls):
         """排序 fm 推荐"""
 
-        input_x, user_feature = get_static_input_data(user_id)
+        input_x, user_feature = static_data_cls.get_static_input_data(user_id)
 
         container = np.random.choice(self.containers)
         SERVER_URL = container + self.model_url
@@ -28,12 +28,12 @@ class DinService(object):
         response = json.loads(response.text)
         scores = np.array(response['outputs'])
 
-        rec_movies = sorted(zip(np.array(static_movie_ids).flatten(), scores.flatten()), key=lambda x: x[1],
+        rec_movies = sorted(zip(np.array(static_data_cls.static_movie_ids).flatten(), scores.flatten()), key=lambda x: x[1],
                             reverse=True)[:self.rec_num]
 
         rec_movies = dict(rec_movies)
 
-        rec_movies = filter_rec_movies_info(rec_movies, user_feature)
+        rec_movies = static_data_cls.filter_rec_movies_info(rec_movies, user_feature)
 
         return rec_movies
 

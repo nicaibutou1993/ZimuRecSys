@@ -3,6 +3,7 @@ import requests
 from offline.rank.service.static_fn import *
 from offline.rank.models.metrics import get_metrics
 from offline.rank.inputs import get_input_data
+from offline.rank.service.static_fn import StaticData
 
 from offline.rank.tasks.task_deepfm import TaskDeepFM
 
@@ -19,10 +20,10 @@ class DeepFMService(object):
         if is_local_model:
             self.deepfm_model = TaskDeepFM().deepfm_model
 
-    def get_user_deepfm_rec_movies(self, user_id):
+    def get_user_deepfm_rec_movies(self, user_id,static_data_cls):
         """排序 fm 推荐"""
 
-        input_x, user_feature = get_static_input_data(user_id)
+        input_x, user_feature = static_data_cls.get_static_input_data(user_id)
 
         container = np.random.choice(self.containers)
         SERVER_URL = container + self.model_url
@@ -33,28 +34,30 @@ class DeepFMService(object):
         response = json.loads(response.text)
         scores = np.array(response['outputs'])
 
-        rec_movies = sorted(zip(np.array(static_movie_ids).flatten(), scores.flatten()), key=lambda x: x[1],
+        rec_movies = sorted(zip(np.array(static_data_cls.static_movie_ids).flatten(), scores.flatten()), key=lambda x: x[1],
                             reverse=True)[:self.rec_num]
 
         rec_movies = dict(rec_movies)
 
-        rec_movies = filter_rec_movies_info(rec_movies, user_feature)
+        rec_movies = static_data_cls.filter_rec_movies_info(rec_movies, user_feature)
 
         return rec_movies
 
     def get_local_model_predict(self, user_id):
 
-        input_x, user_feature = get_static_tensor_input_data(user_id)
+        static_data_cls = StaticData()
+
+        input_x, user_feature = static_data_cls.get_static_tensor_input_data(user_id)
 
         scores = self.deepfm_model(input_x, training=False).numpy()
         print(scores)
 
-        rec_movies = sorted(zip(np.array(static_movie_ids).flatten(), scores.flatten()), key=lambda x: x[1],
+        rec_movies = sorted(zip(np.array(static_data_cls.static_movie_ids).flatten(), scores.flatten()), key=lambda x: x[1],
                             reverse=True)[:self.deepfm_rec_num]
 
         rec_movies = dict(rec_movies)
 
-        rec_movies = filter_rec_movies_info(rec_movies, user_feature)
+        rec_movies = static_data_cls.filter_rec_movies_info(rec_movies, user_feature)
 
         return rec_movies
 

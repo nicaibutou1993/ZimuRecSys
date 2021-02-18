@@ -10,9 +10,13 @@ import pickle
 
 
 class TowerService(object):
-    tower_rec_num = 100
+    containers = ['http://192.168.18.99:8501']
 
-    def __init__(self):
+    model_path = '/v1/models/tower_user_model:predict'
+
+    def __init__(self, rec_num=100):
+
+        self.rec_num = rec_num
         self.tower_model_cls = TowerModel()
         data_preprocess = DataPreprocess()
 
@@ -22,8 +26,7 @@ class TowerService(object):
 
         self.id2movie, self.movie2id = pickle.load(open(data_preprocess.movie_encoder_path, 'rb'))
 
-
-    def get_tower_rec(self, user_id):
+    def get_tower_rec_movies(self, user_id):
         """双塔召回模型 推荐"""
 
         encoder_user_id = self.user2id.get(user_id)
@@ -36,14 +39,14 @@ class TowerService(object):
         if len(user_vector) > 0:
             user_vector = user_vector.astype(np.float32)
 
-            D, I = self.faiss_model.search(np.ascontiguousarray(user_vector), self.tower_rec_num)
+            D, I = self.faiss_model.search(np.ascontiguousarray(user_vector), self.rec_num)
 
             for d, i in zip(D[0], I[0]):
                 movie_id = self.faiss_2_movie_ids_mapping[i]
                 rec_movies[movie_id] = d
 
             print("filter before data len : ", len(rec_movies))
-            self.filter_click_movie_ids(rec_movies,user_feature)
+            rec_movies = self.filter_click_movie_ids(rec_movies, user_feature)
 
         return rec_movies
 
@@ -63,7 +66,7 @@ class TowerService(object):
                 if rec_movies.__contains__(click_movie_id):
                     rec_movies.pop(click_movie_id)
 
-            print("filter after movie nums",len(rec_movies))
+            print("filter after movie nums", len(rec_movies))
             if len(rec_movies) > 0:
                 rec_movies = {int(self.id2movie.get(encoder_id)): score for encoder_id, score in rec_movies.items()}
 
@@ -73,12 +76,17 @@ class TowerService(object):
 
                 rec_movies = sorted(rec_movies.items(), key=lambda x: x[1], reverse=True)
 
-                rec_movies = [ [movie_id,score,int(movies_info.get(movie_id)[2])-1 ]for movie_id,score in rec_movies]
+                rec_movies = {str(movie_id): score for movie_id, score in
+                              rec_movies}
 
-                print( " ---------- rec movies ------------------")
-                for i in rec_movies:
-                    print(i)
+                # rec_movies = [[str(movie_id), score, int(movies_info.get(movie_id)[2]) - 1] for movie_id, score in
+                #               rec_movies]
+                #
+                # print(" ---------- rec movies ------------------")
+                # for i in rec_movies:
+                #     print(i)
 
+        return rec_movies
 
     def get_user_vector(self, user_id):
         """获取用户向量"""
@@ -87,9 +95,9 @@ class TowerService(object):
         user_vector = np.array([])
         if len(user_feature) > 0:
             try:
-                containers = ['http://192.168.18.99:8502', 'http://192.168.18.99:8501', 'http://192.168.18.99:8503']
-                container = np.random.choice(containers)
-                SERVER_URL = container + '/v1/models/tower_user_model:predict'
+
+                container = np.random.choice(self.containers)
+                SERVER_URL = container + self.model_path
 
                 data = {"inputs": {"user_id": [int(user_id)],
                                    "user_recent_click_movie_ids": [
@@ -122,4 +130,4 @@ class TowerService(object):
 if __name__ == '__main__':
     tower_service = TowerService()
 
-    tower_service.get_tower_rec(5)
+    tower_service.get_tower_rec_movies(2)

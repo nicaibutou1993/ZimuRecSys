@@ -7,11 +7,11 @@ from offline.convert_tf_record import dataframe_to_tf_record, tf_record_to_datas
 from sklearn.utils import shuffle
 
 from util.config import *
+
 pd.set_option("display.max_column", None)
 
 
 class DataPreprocess(object):
-
     root_path = PROJECT_PATH + 'offline/data/'
 
     data_path = root_path + "basic_data.csv"
@@ -30,6 +30,8 @@ class DataPreprocess(object):
     is_use_mini_test_data = True
     mini_test_data_path = root_path + "mini_test_data.csv"
     mini_test_tfrecord_file = root_path + "mini_test.tfrecords"
+
+    movie_info_path = root_path + "movie_info.csv"
 
     def __init__(self):
         print()
@@ -251,15 +253,22 @@ class DataPreprocess(object):
         dataframe_to_tf_record(mini_test_df, self.mini_test_tfrecord_file)
 
     def get_all_movie_info(self):
-        data_df = pd.read_csv(self.encoder_data_path)
 
-        data_df = data_df[["movie_id", "current_label", "release_year"]]
+        if os.path.exists(self.movie_info_path):
 
-        data_df = data_df.drop_duplicates(["movie_id"])
+            movie_info_df = pd.read_csv(self.movie_info_path, index_col=0)
 
-        data_df.to_csv("data/movie_info.csv")
+        else:
+            data_df = pd.read_csv(self.encoder_data_path)
 
-        return data_df
+            data_df = data_df[["movie_id", "current_label", "release_year"]]
+
+            movie_info_df = data_df.drop_duplicates(["movie_id"])
+
+            movie_info_df.to_csv(self.movie_info_path)
+
+        return movie_info_df
+
 
 if __name__ == '__main__':
     DataPreprocess().get_all_movie_info()
