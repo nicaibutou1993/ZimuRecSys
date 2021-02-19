@@ -2,6 +2,7 @@ from tensorflow.keras.layers import Layer
 import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras.layers import *
+from tensorflow.keras.initializers import Zeros
 
 
 class FMLayer(Layer):
@@ -35,20 +36,16 @@ class AttentionSequencePoolingLayer(Layer):
         super(AttentionSequencePoolingLayer, self).__init__(**kwargs)
 
     def build(self, input_shape):
-
-
-        self.dense1 = Dense(self.att_hidden_units[0],activation="relu")
+        self.dense1 = Dense(self.att_hidden_units[0], activation="relu")
         self.dense2 = Dense(self.att_hidden_units[1], activation="relu")
         self.dense3 = Dense(1)
 
         super(AttentionSequencePoolingLayer, self).build(input_shape)
 
-
-
     def call(self, inputs, **kwargs):
         q, k = inputs
 
-        q = K.repeat_elements(q, K.int_shape(k)[1],axis=1)
+        q = K.repeat_elements(q, K.int_shape(k)[1], axis=1)
 
         a = K.concatenate([q, k, q - k, q * k], axis=-1)
 
@@ -58,7 +55,7 @@ class AttentionSequencePoolingLayer(Layer):
 
         a = tf.transpose(a, (0, 2, 1))
 
-        #a_output = K.dot(a, k)
+        # a_output = K.dot(a, k)
         a_output = tf.matmul(a, k)
 
         return a_output
@@ -66,13 +63,62 @@ class AttentionSequencePoolingLayer(Layer):
     def compute_output_shape(self, input_shape):
         return (None, input_shape[-1])
 
-
     def get_config(self):
-
-        config = {"att_hidden_units":self.att_hidden_units}
+        config = {"att_hidden_units": self.att_hidden_units}
 
         base_config = super(AttentionSequencePoolingLayer, self).get_config()
 
-        #base_config.update(config)
+        # base_config.update(config)
 
         return dict(list(config.items()) + list(base_config.items()))
+
+
+class CrossLayer(Layer):
+
+    def __init__(self, cross_layer_num=2, **kwargs):
+        self.cross_layer_num = cross_layer_num
+
+        super(CrossLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        dim = input_shape[-1]
+
+        self.kenrels = [self.add_weight(name="kenrel" + str(i),
+                                        shape=(dim, 1),
+                                        trainable=True)
+                        for i in range(self.cross_layer_num)]
+
+        self.biases = [self.add_weight(name="bias" + str(i),
+                                       shape=(dim, 1),
+                                       initializer=Zeros(),
+                                       trainable=True) for i in range(self.cross_layer_num)]
+
+        super(CrossLayer, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        x = tf.expand_dims(inputs, axis=2)
+
+        x0 = x
+        xl = x
+
+        for i in range(self.cross_layer_num):
+            _xl = tf.tensordot(xl, self.kenrels[i], axes=(1, 0))
+
+            _xl = tf.matmul(x0, _xl)
+
+            xl = _xl + self.biases[i] + xl
+
+        xl = Flatten()(xl)
+        return xl
+
+    def get_config(self):
+        config = {"cross_layer_num": self.cross_layer_num}
+
+        base_config = super(CrossLayer, self).get_config()
+
+        base_config = dict(list(base_config.items()) + list(config.items()))
+
+        return base_config
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[-1])

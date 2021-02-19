@@ -13,6 +13,11 @@ def get_callback(test_dataset, model_path, version="0001"):
             self.version = version
             self.f1 = 0.0
 
+            _path = os.path.join(self.model_path, version)
+
+            if not os.path.exists(_path):
+                os.makedirs(_path)
+
         def on_epoch_end(self, epoch, logs=None):
 
             true_y = []
@@ -34,7 +39,7 @@ def get_callback(test_dataset, model_path, version="0001"):
 
                 self.f1 = f1
 
-    evaluate = Evaluate(test_dataset, model_path,version)
+    evaluate = Evaluate(test_dataset, model_path, version)
 
     return evaluate
 
