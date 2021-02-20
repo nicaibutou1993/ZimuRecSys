@@ -3,6 +3,7 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras.layers import *
 from tensorflow.keras.initializers import Zeros
+import itertools
 
 
 class FMLayer(Layer):
@@ -122,3 +123,115 @@ class CrossLayer(Layer):
 
     def compute_output_shape(self, input_shape):
         return (input_shape[0], input_shape[-1])
+
+
+class AFMLayer(Layer):
+
+    def __init__(self, attention_factor, **kwargs):
+        self.attention_factor = attention_factor
+        super(AFMLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.dense1 = Dense(16, activation="relu")
+
+        self.dense2 = Dense(1, use_bias=False)
+
+        self.dense3 = Dense(1, use_bias=False)
+
+        super(AFMLayer, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        embeds_vec_list = inputs
+
+        row = []
+        col = []
+        for r, c in itertools.combinations(embeds_vec_list, 2):
+            row.append(r)
+            col.append(c)
+
+        p = K.concatenate(row, axis=1)
+        q = K.concatenate(col, axis=1)
+
+        inner_product = p * q
+
+        x = self.dense1(inner_product)
+
+        x = self.dense2(x)
+
+        a = K.softmax(x, axis=1)
+
+        o = tf.reduce_sum(a * inner_product, axis=1)
+
+        afm_out = self.dense3(o)
+
+        return afm_out
+
+    def get_config(self):
+        config = {"attention_factor": self.attention_factor}
+
+        base_config = super(AFMLayer, self).get_config()
+
+        return dict(list(base_config.items()) + list(config.items()))
+
+    def compute_output_shape(self, input_shape):
+        return (None, 1)
+
+
+class MutiHeadSelfAttention(Layer):
+
+    def __init__(self, att_embedding_size, head_num, use_res, **kwargs):
+        self.att_embedding_size = att_embedding_size
+        self.head_num = head_num
+        self.use_res = use_res
+
+        super(MutiHeadSelfAttention, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.q_dense = Dense(self.att_embedding_size * self.head_num, activation="relu")
+        self.k_dense = Dense(self.att_embedding_size * self.head_num, activation="relu")
+        self.v_dense = Dense(self.att_embedding_size * self.head_num, activation="relu")
+
+        if self.use_res:
+            self.r_dense = Dense(self.att_embedding_size * self.head_num, activation="relu")
+
+        super(MutiHeadSelfAttention, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+
+        q = self.q_dense(inputs)
+        k = self.k_dense(inputs)
+        v = self.v_dense(inputs)
+
+        dim = K.int_shape(q)[1]
+        q = K.reshape(q, (-1, dim, self.head_num, self.att_embedding_size))
+        k = K.reshape(k, (-1, dim, self.head_num, self.att_embedding_size))
+        v = K.reshape(v, (-1, dim, self.head_num, self.att_embedding_size))
+
+        q = K.permute_dimensions(q, (0, 2, 1, 3))
+        k = K.permute_dimensions(k, (0, 2, 1, 3))
+        v = K.permute_dimensions(v, (0, 2, 1, 3))
+
+        a = tf.matmul(q, k, transpose_b=True)
+
+        a = K.softmax(a, axis=-1)
+
+        o = tf.matmul(a, v)
+
+        o = K.reshape(o, (-1, dim, self.att_embedding_size * self.head_num))
+
+        if self.use_res:
+            o += self.r_dense(inputs)
+
+        return o
+
+    def get_config(self):
+        config = {"att_embedding_size": self.att_embedding_size,
+                  "head_num": self.head_num,
+                  "use_res": self.use_res}
+
+        base_config = super(MutiHeadSelfAttention, self).get_config()
+
+        return dict(list(base_config.items()) + list(config.items()))
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[1], self.att_embedding_size * self.head_num)
