@@ -12,11 +12,11 @@ from offline.rank.models.metrics import get_callback
 
 """
 
+embedding_size = 16
+测试集：acc:  [0.89922451] precision:  0.7611037673496365 recall:  0.7230856174060469 f1:  0.7416077667401909
+
 embedding_size = 32
-测试集：acc:  [0.8678974] precision:  0.7338755028766708 recall:  0.532636337948573 f1:  0.6172682287876582
-
-
-afm  效果很差
+测试集：acc: [0.90073153] precision:  0.7627424004192872 recall:  0.7310602492857368 f1:  0.746565350518604
 
 """
 
@@ -25,13 +25,13 @@ movie_num = 2514
 year_num = 76
 genre_num = 9
 
-embedding_size = 16
+embedding_size = 32
 epoch = 20
 batch_size = 512
 
 model_path = "checkpoint/autoint_model_by_deepctr/"
 
-version = '0001'
+version = '0002'
 
 data_process = DataPreprocess()
 train_dataset, test_dataset = data_process.generate_data(batch_size=batch_size, epoch=epoch)

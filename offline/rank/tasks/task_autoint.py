@@ -14,10 +14,12 @@ from util.config import *
 
 """
 
+
 embedding_size = 16
 测试集：acc:  [0.90000942] precision:  0.7617075815833579 recall:  0.7277008571159461 f1:  0.7443159922928708
 
-afm 效果很差
+embedding_size = 32
+测试集：acc:  [0.89818216] precision:  0.7616816173517205 recall:  0.7144516655678 f1:  0.7373110632300289
 """
 gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
 for gpu in gpus:
