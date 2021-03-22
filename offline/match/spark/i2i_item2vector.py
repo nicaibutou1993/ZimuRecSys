@@ -33,6 +33,8 @@ spark = SparkSession. \
     getOrCreate()
 
 
+
+
 df = spark.read.text(path)
 
 fields = [('user_id', 0), ('movie_id', 1), ('score', 2), ('time', 3)]
@@ -44,6 +46,7 @@ for name, i in fields:
     df = df.withColumn(name, split('value', '::').getItem(i).astype("int"))
 
 print(df.printSchema)
+print()
 '''dataframe修改数据类型'''
 df = df.withColumn("score", df['score'].astype("float"))
 
