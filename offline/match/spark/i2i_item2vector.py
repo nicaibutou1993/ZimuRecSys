@@ -32,6 +32,7 @@ spark = SparkSession. \
     config(conf=conf). \
     getOrCreate()
 
+
 df = spark.read.text(path)
 
 fields = [('user_id', 0), ('movie_id', 1), ('score', 2), ('time', 3)]
