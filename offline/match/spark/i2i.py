@@ -11,6 +11,7 @@ path = PROJECT_PATH + 'data/movies.dat'
 movie_embedding = pd.read_csv('i2i_movie_embedding.csv', index_col=0)
 
 
+
 movie_embedding.rename(columns={'word': 'movie_id'}, inplace=True)
 
 movie_df = pd.read_csv(path, sep="::", header=None)
