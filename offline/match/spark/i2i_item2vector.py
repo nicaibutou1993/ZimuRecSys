@@ -46,7 +46,6 @@ for name, i in fields:
     df = df.withColumn(name, split('value', '::').getItem(i).astype("int"))
 
 print(df.printSchema)
-print()
 '''dataframe修改数据类型'''
 df = df.withColumn("score", df['score'].astype("float"))
 
