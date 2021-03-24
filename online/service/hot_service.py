@@ -7,6 +7,7 @@ from online.service.data_util import diff_and_sort
 """
 
 
+
 class HotService(object):
 
     def __init__(self, rec_num=1):
